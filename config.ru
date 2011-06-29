@@ -13,7 +13,7 @@ end
 #STDOUT.reopen(log)
 #STDERR.reopen(log)
 
-requier File.dirname(__FILE__) + '/oa-casport.rb'
+require File.dirname(__FILE__) + '/oa-casport.rb'
 
 run OaCasportSinatra::Application
 
