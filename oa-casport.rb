@@ -17,7 +17,8 @@ module OaCasportSinatra
     enable :sessions
     use OmniAuth::Builder do
       provider :casport, {
-        :setup  => true
+        :setup  => true,
+        :cas_server => 'http://oa-cas.slkdemos.com'
       }
     end
 

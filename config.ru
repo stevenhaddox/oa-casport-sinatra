@@ -1,11 +1,9 @@
 begin
   require 'sinatra'
-  require 'oa-core'
   require 'oa-casport'
 rescue LoadError
   require 'rubygems'
   require 'sinatra'
-  require 'oa-core'
   require 'oa-casport'
 end
 
