@@ -10,36 +10,53 @@ rescue LoadError
 end
 
 require 'yaml'
+require 'awesome_print'
 
 module OaCasportSinatra
   class Application < Sinatra::Base
 
-    enable :sessions
+    use Rack::Session::Cookie
     use OmniAuth::Builder do
       provider :casport, {
         :setup  => true,
-        :cas_server => 'http://oa-cas.slkdemos.com'
+        :cas_server => 'http://cas.dev/users/'
+        #:cas_server => 'http://oa-cas.slkdemos.com/users/'
       }
     end
 
     get '/' do
-      <<-HTML
-        <a href='/auth/casport'>Sign in with CASPORT</a>
-      HTML
+      unless session['auth_error'].nil?
+        <<-HTML
+          <div class='error'><strong>Error:</strong> #{session['auth_error']}</div>"
+        HTML
+      end
+      unless session['auth_hash'].nil?
+        <<-HTML
+          <h3>Welcome #{session['auth_hash']['user_info']['name']}</h3>
+          <p>You've logged in successfully via #{session['auth_hash']['provider']}!</p>
+          Your login details are:<br>
+          <pre><code>#{session['auth_hash']}</code></pre>
+          <p><a href='signout'>Sign Out</a></p>
+        HTML
+      else
+        <<-HTML
+          <a href='/auth/casport'>Sign in with CASPORT</a>
+        HTML
+      end
     end
 
     get '/auth/:provider/setup' do
-      request.env['omniauth.strategy'].options[:uid] = '1'
+      request.env['omniauth.strategy'].options[:uid] = 1.to_s
       status 404
       body "Setup complete"
     end
 
     get '/auth/:provider/callback' do
-      session['casport_auth'] = request.env['omniauth.auth']
-      session['casport_error'] = nil
-      "Hello, #{session['casport_auth']['userinfo']['name']}, you logged in via #{params[:provider]}"
-      "Your user details are: "
-      "#{session['casport_auth'].to_yaml}" 
+      if request.env['omniauth.auth']
+        session['auth_hash'] = request.env['omniauth.auth']
+      else
+        session['auth_error'] = "request.env['omniauth.auth'] is nil"
+      end
       redirect '/'
     end
 
@@ -54,8 +71,8 @@ module OaCasportSinatra
     end
 
     def clear_session
-      session['casport_auth']  = nil
-      session['casport_error'] = nil
+      session['auth_hash']  = nil
+      session['auth_error'] = nil
     end
 
   end
